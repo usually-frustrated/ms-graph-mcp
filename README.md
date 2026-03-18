@@ -30,10 +30,11 @@ This package is designed to be integrated as a connection within the Manus UI, a
 Before using the MCP CLI, you need to initialize it once to authenticate with your Microsoft account. This process will guide you through granting necessary permissions.
 
 ```bash
-bunx --bun github:usually-frustrated/ms-graph-mcp init
+bunx --bun @frustrated/ms-graph-mcp init
 ```
 
 This will:
+
 1. Start a local HTTP server to receive the OAuth callback.
 2. Print an authentication URL — open it in your browser to sign in.
 3. Grant consent for the requested scopes.
@@ -51,8 +52,8 @@ bunx --bun github:usually-frustrated/ms-graph-mcp run
 
 The Microsoft Graph MCP CLI exposes the following tools:
 
-*   **`mail`**: Manage email communications (e.g., list messages).
-*   **`calendar`**: Organize calendar events (e.g., create events).
+- **`mail`**: Manage email communications (e.g., list messages).
+- **`calendar`**: Organize calendar events (e.g., create events).
 
 For detailed information on specific tools and their functionalities, refer to the [Tools Documentation](./docs/tools/README.md).
 
