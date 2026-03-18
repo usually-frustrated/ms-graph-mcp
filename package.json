@@ -1,6 +1,6 @@
 {
   "name": "@frustrated/ms-graph-mcp",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A JSR-based TypeScript MCP package for personal Microsoft Graph access via CLI",
   "type": "module",
   "main": "./dist/index.js",

@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import { Command } from 'commander';
 import { initAuth, revokeAuth, getAuthStatus } from './auth';
 import { getConfig, saveConfig } from './config';
