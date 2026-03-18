@@ -35,7 +35,7 @@ async function processMcpRequest(request: McpRequest): Promise<McpResponse> {
     };
   }
 
-  const toolHandler = registeredTools[request.tool];
+  const toolHandler = (registeredTools as Record<string, ((graphClient: Client, input: any) => Promise<any>) | undefined>)[request.tool];
   if (!toolHandler) {
     return {
       type: 'response',

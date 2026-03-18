@@ -1,4 +1,5 @@
-import { PublicClientApplication, Configuration, LogLevel } from '@azure/msal-node';
+import { PublicClientApplication, Configuration, LogLevel, CryptoProvider } from '@azure/msal-node';
+import { AddressInfo } from 'net';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as os from 'os';
@@ -26,35 +27,29 @@ const REDIRECT_URI_PATH = '/auth-callback';
 const TOKEN_CACHE_FILE = path.join(os.homedir(), '.ms-graph-mcp', 'token_cache.json');
 const SERVICE_NAME = 'ms-graph-mcp';
 const ACCOUNT_NAME = 'default_user';
+const SCOPES = ['User.Read', 'Mail.ReadWrite', 'Calendars.ReadWrite', 'Files.ReadWrite.All', 'offline_access'];
 
 const pca = new PublicClientApplication(MSAL_CONFIG);
 
-interface TokenCache {
-  refreshToken: string;
-  accessToken: string;
-  expiresOn: number;
-}
-
-async function saveTokenCache(cache: TokenCache) {
+async function saveTokenCache() {
+  const serialized = pca.getTokenCache().serialize();
   await fs.mkdir(path.dirname(TOKEN_CACHE_FILE), { recursive: true });
-  await fs.writeFile(TOKEN_CACHE_FILE, JSON.stringify(cache, null, 2));
-  // Optionally, use keytar for refresh token for better security
-  await keytar.setPassword(SERVICE_NAME, ACCOUNT_NAME, cache.refreshToken);
+  await fs.writeFile(TOKEN_CACHE_FILE, serialized);
+  await keytar.setPassword(SERVICE_NAME, ACCOUNT_NAME, serialized);
 }
 
-async function loadTokenCache(): Promise<TokenCache | null> {
+async function loadTokenCache(): Promise<boolean> {
   try {
-    const refreshToken = await keytar.getPassword(SERVICE_NAME, ACCOUNT_NAME);
-    if (refreshToken) {
-      // For simplicity, we're not storing accessToken and expiresOn in keytar directly
-      // They will be refreshed using the refreshToken
-      return { refreshToken, accessToken: '', expiresOn: 0 };
+    const serialized = await keytar.getPassword(SERVICE_NAME, ACCOUNT_NAME);
+    if (serialized) {
+      pca.getTokenCache().deserialize(serialized);
+      return true;
     }
-    // Fallback to file if keytar fails or is not used
-    const cacheContent = await fs.readFile(TOKEN_CACHE_FILE, 'utf-8');
-    return JSON.parse(cacheContent);
-  } catch (error) {
-    return null;
+    const fileData = await fs.readFile(TOKEN_CACHE_FILE, 'utf-8');
+    pca.getTokenCache().deserialize(fileData);
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -62,14 +57,14 @@ export async function initAuth(): Promise<void> {
   console.log('Initiating Microsoft Graph authentication...');
   console.log('Please ensure you have registered a multi-tenant application in Azure AD with the following redirect URI: http://localhost:PORT/auth-callback');
 
-  const crypto = await import('crypto');
-  const pkceCodes = pca.generatePkceCodes();
+  const cryptoProvider = new CryptoProvider();
+  const pkceCodes = await cryptoProvider.generatePkceCodes();
 
   const authCodeUrlParameters = {
-    scopes: ['User.Read', 'Mail.ReadWrite', 'Calendars.ReadWrite', 'Files.ReadWrite.All', 'offline_access'],
-    redirectUri: `http://localhost:0${REDIRECT_URI_PATH}`, // Use port 0 to get a random available port
+    scopes: SCOPES,
+    redirectUri: `http://localhost:0${REDIRECT_URI_PATH}`,
     codeChallenge: pkceCodes.challenge,
-    codeChallengeMethod: 'S256',
+    codeChallengeMethod: 'S256' as const,
   };
 
   const authCodeUrl = await pca.getAuthCodeUrl(authCodeUrlParameters);
@@ -82,25 +77,22 @@ export async function initAuth(): Promise<void> {
 
         if (code) {
           try {
+            const addr = server.address() as AddressInfo;
             const tokenResult = await pca.acquireTokenByCode({
               code,
-              scopes: authCodeUrlParameters.scopes,
-              redirectUri: `http://localhost:${server.address().port}${REDIRECT_URI_PATH}`,
+              scopes: SCOPES,
+              redirectUri: `http://localhost:${addr.port}${REDIRECT_URI_PATH}`,
               codeVerifier: pkceCodes.verifier,
             });
 
-            if (tokenResult && tokenResult.refreshToken) {
-              await saveTokenCache({
-                refreshToken: tokenResult.refreshToken,
-                accessToken: tokenResult.accessToken,
-                expiresOn: tokenResult.expiresOn ? tokenResult.expiresOn.getTime() : 0,
-              });
+            if (tokenResult) {
+              await saveTokenCache();
               res.writeHead(200, { 'Content-Type': 'text/plain' });
               res.end('Authentication successful! You can close this window.');
               console.log('Authentication successful. Tokens saved securely.');
               server.close(() => resolve());
             } else {
-              throw new Error('No refresh token received.');
+              throw new Error('Authentication failed: no token result received.');
             }
           } catch (error) {
             console.error('Error acquiring token:', error);
@@ -120,8 +112,8 @@ export async function initAuth(): Promise<void> {
     });
 
     server.listen(0, () => {
-      const port = server.address().port;
-      const finalRedirectUri = `http://localhost:${port}${REDIRECT_URI_PATH}`;
+      const addr = server.address() as AddressInfo;
+      const finalRedirectUri = `http://localhost:${addr.port}${REDIRECT_URI_PATH}`;
       console.log(`Please open the following URL in your browser to authenticate:\n${authCodeUrl.replace(`http://localhost:0${REDIRECT_URI_PATH}`, finalRedirectUri)}`);
       open(authCodeUrl.replace(`http://localhost:0${REDIRECT_URI_PATH}`, finalRedirectUri));
     });
@@ -134,40 +126,30 @@ export async function initAuth(): Promise<void> {
 }
 
 export async function getAccessToken(): Promise<string> {
-  let tokenCache = await loadTokenCache();
+  await loadTokenCache();
 
-  if (!tokenCache || !tokenCache.refreshToken) {
-    throw new Error('No refresh token found. Please run `bunx @manus/ms-graph-mcp init` first.');
-  }
-
-  // Check if current access token is still valid
-  if (tokenCache.accessToken && tokenCache.expiresOn > Date.now() + 60 * 1000) { // Refresh if less than 1 minute left
-    return tokenCache.accessToken;
+  const accounts = await pca.getAllAccounts();
+  if (accounts.length === 0) {
+    throw new Error('No account found. Please run `ms-graph-mcp init` first.');
   }
 
   try {
-    const tokenResult = await pca.acquireTokenByRefreshToken({
-      refreshToken: tokenCache.refreshToken,
-      scopes: ['User.Read', 'Mail.ReadWrite', 'Calendars.ReadWrite', 'Files.ReadWrite.All', 'offline_access'],
+    const tokenResult = await pca.acquireTokenSilent({
+      account: accounts[0],
+      scopes: SCOPES,
     });
 
-    if (tokenResult && tokenResult.accessToken && tokenResult.refreshToken) {
-      tokenCache = {
-        refreshToken: tokenResult.refreshToken,
-        accessToken: tokenResult.accessToken,
-        expiresOn: tokenResult.expiresOn ? tokenResult.expiresOn.getTime() : 0,
-      };
-      await saveTokenCache(tokenCache);
-      return tokenCache.accessToken;
-    } else {
-      throw new Error('Failed to acquire access token by refresh token.');
+    if (!tokenResult) {
+      throw new Error('Failed to acquire access token silently.');
     }
+
+    await saveTokenCache();
+    return tokenResult.accessToken;
   } catch (error) {
     console.error('Error refreshing token:', error);
-    // Clear invalid token cache
     await fs.unlink(TOKEN_CACHE_FILE).catch(() => {});
     await keytar.deletePassword(SERVICE_NAME, ACCOUNT_NAME).catch(() => {});
-    throw new Error('Failed to refresh access token. Please re-authenticate using `bunx @manus/ms-graph-mcp init`.');
+    throw new Error('Failed to refresh access token. Please re-authenticate using `ms-graph-mcp init`.');
   }
 }
 
@@ -183,11 +165,13 @@ export async function revokeAuth(): Promise<void> {
 }
 
 export async function getAuthStatus(): Promise<{ clientId: string; tenantId: string; isAuthenticated: boolean }> {
-  const tokenCache = await loadTokenCache();
-  const isAuthenticated = !!tokenCache?.refreshToken;
+  await loadTokenCache();
+  const accounts = await pca.getAllAccounts();
+  const isAuthenticated = accounts.length > 0;
+  const authority = MSAL_CONFIG.auth.authority ?? 'https://login.microsoftonline.com/common';
   return {
     clientId: MSAL_CONFIG.auth.clientId,
-    tenantId: MSAL_CONFIG.auth.authority.split('/').pop() || 'common',
+    tenantId: authority.split('/').pop() || 'common',
     isAuthenticated,
   };
 }
