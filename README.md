@@ -1,6 +1,16 @@
-# Microsoft Graph MCP Package
+<p align="center">
+  <img src="./icon-512.png" alt="Microsoft Graph MCP Icon" width="150"/>
+</p>
+
+<h1 align="center">Microsoft Graph MCP Package</h1>
+
+<p align="center">
+  <b>Seamless Microsoft Graph Integration for AI Agents.</b>
+</p>
 
 A JSR-based TypeScript MCP (Model Context Protocol) package for personal Microsoft Graph access via CLI. This package enables AI agents to interact with personal Microsoft Graph APIs (Outlook, OneDrive, Calendar, etc.) through a local CLI interface.
+
+## Overview
 
 ## Features
 
