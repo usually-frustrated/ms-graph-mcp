@@ -11,3 +11,5 @@ dist/
 *.swo
 ~*
 .bun/
+deno.lock
+package-lock.json
