@@ -1,5 +1,5 @@
-import * as mail from './mail';
-import * as calendar from './calendar';
+import * as mail from './mail.ts';
+import * as calendar from './calendar.ts';
 // import * as onedrive from './onedrive'; // Placeholder for future tools
 
 export const tools = {

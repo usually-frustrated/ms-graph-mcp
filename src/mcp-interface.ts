@@ -1,6 +1,6 @@
-import { getAccessToken } from './auth';
-import { getConfig, isToolEnabled } from './config';
-import { error, log } from './utils';
+import { getAccessToken } from './auth.ts';
+import { getConfig, isToolEnabled } from './config.ts';
+import { error, log } from './utils.ts';
 import { Client } from '@microsoft/microsoft-graph-client';
 
 // Define MCP message interfaces
@@ -20,7 +20,7 @@ interface McpResponse {
 }
 
 // Placeholder for registered tools
-import { tools as registeredTools } from './tools';
+import { tools as registeredTools } from './tools/index.ts';
 
 
 async function processMcpRequest(request: McpRequest): Promise<McpResponse> {

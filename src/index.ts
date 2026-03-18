@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { Command } from "@commander-js/extra-typings";
-import { initAuth, revokeAuth, getAuthStatus } from "./auth";
-import { getConfig, saveConfig } from "./config";
-import { startMcpServer } from "./mcp-interface";
+import { initAuth, revokeAuth, getAuthStatus } from "./auth.ts";
+import { getConfig, saveConfig } from "./config.ts";
+import { startMcpServer } from "./mcp-interface.ts";
 
 const program = new Command();
 

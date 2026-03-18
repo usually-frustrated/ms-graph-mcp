@@ -1,5 +1,5 @@
 import { Client } from '@microsoft/microsoft-graph-client';
-import { log, error } from '../utils';
+import { log, error } from '../utils.ts';
 
 export async function listMessages(graphClient: Client, input: { folderId?: string; top?: number; filter?: string }): Promise<any> {
   try {

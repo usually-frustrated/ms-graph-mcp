@@ -15,6 +15,9 @@
     "test": "bun test",
     "typecheck": "bun run tsc --noEmit"
   },
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM"]
+  },
   "imports": {
     "@azure/msal-node": "npm:@azure/msal-node",
     "@microsoft/microsoft-graph-client": "npm:@microsoft/microsoft-graph-client@^3.0.0",

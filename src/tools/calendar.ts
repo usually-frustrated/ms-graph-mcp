@@ -1,5 +1,5 @@
 import { Client } from '@microsoft/microsoft-graph-client';
-import { log, error } from '../utils';
+import { log, error } from '../utils.ts';
 
 export async function createEvent(graphClient: Client, input: {
   subject: string;
