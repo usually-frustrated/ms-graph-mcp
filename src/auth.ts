@@ -1,9 +1,9 @@
 import { PublicClientApplication, Configuration, LogLevel, CryptoProvider } from '@azure/msal-node';
-import { AddressInfo } from 'net';
-import { promises as fs } from 'fs';
-import * as path from 'path';
-import * as os from 'os';
-import { createServer } from 'http';
+import { AddressInfo } from 'node:net';
+import { promises as fs } from 'node:fs';
+import * as path from 'node:path';
+import * as os from 'node:os';
+import { createServer } from 'node:http';
 
 const MSAL_CONFIG: Configuration = {
   auth: {
