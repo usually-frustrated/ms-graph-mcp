@@ -15,6 +15,14 @@
     "test": "bun test",
     "typecheck": "bun run tsc --noEmit"
   },
+  "imports": {
+    "@azure/msal-node": "npm:@azure/msal-node",
+    "@microsoft/microsoft-graph-client": "npm:@microsoft/microsoft-graph-client@^3.0.0",
+    "@commander-js/extra-typings": "npm:@commander-js/extra-typings@^14.0.0",
+    "open": "npm:open@^11.0.0",
+    "zod": "npm:zod@^3.22.0",
+    "keytar": "npm:keytar@^7.9.0"
+  },
   "dependencies": {
     "@azure/msal-node": "latest",
     "@microsoft/microsoft-graph-client": "^3.0.0",
