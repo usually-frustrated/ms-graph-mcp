@@ -11,106 +11,119 @@ A JSR-based TypeScript MCP (Model Context Protocol) package for personal Microso
 - **User Control:** Provides CLI commands for permission management and revocation.
 - **MCP Standard:** Adheres to the Model Context Protocol for broad agent compatibility.
 
-## Installation
+## Usage with Manus Agents
 
-Install Bun first (if not already installed):
+This package is designed to be integrated as a connection within the Manus UI, allowing AI agents to directly invoke its functionalities. It communicates via `stdio`, sending and receiving JSON payloads.
 
-```bash
-curl -fsSL https://bun.sh/install | bash
-```
+### Installation and Initialization
 
-Then, clone the repository and install dependencies:
+Before using the MCP CLI, you need to initialize it once to authenticate with your Microsoft account. This process will guide you through granting necessary permissions.
 
-```bash
-git clone <repository-url>
-cd ms-graph-mcp
-bun install
-```
-
-## Quick Start
-
-### Initialize Authentication
+#### Using Bun (`bunx`)
 
 ```bash
-bunx @manus/ms-graph-mcp init
+bunx jsr:@frustrated/ms-graph-mcp init
 ```
 
-This command will:
-1. Prompt you to authenticate with your Microsoft account (personal or organizational).
-2. Open your browser to the Microsoft identity platform.
-3. Grant consent for the requested scopes.
-4. Securely store your refresh token locally.
-
-### Run the MCP Server
+#### Using Deno (`deno run`)
 
 ```bash
-bunx @manus/ms-graph-mcp run
+deno run -A jsr:@frustrated/ms-graph-mcp init
 ```
 
-The MCP server will start and listen for requests on `stdin`, communicating with AI agents via `stdout`.
-
-### Manage Permissions
+#### Using Node.js (`npx`)
 
 ```bash
-bunx @manus/ms-graph-mcp permissions
+npx jsr @frustrated/ms-graph-mcp init
 ```
 
-Displays the currently configured Client ID, Tenant ID, and enabled/disabled tools.
+These commands will:
+1.  Prompt you to authenticate with your Microsoft account (personal or organizational).
+2.  Open your browser to the Microsoft identity platform.
+3.  Grant consent for the requested scopes.
+4.  Securely store your refresh token locally using `keytar`.
 
-### Revoke Access
+### Running the MCP Server
+
+Once initialized, Manus agents will typically run the MCP server to interact with Microsoft Graph. The server listens for JSON requests on `stdin` and outputs JSON responses to `stdout`.
+
+#### Using Bun (`bunx`)
 
 ```bash
-bunx @manus/ms-graph-mcp revoke
+bunx jsr:@frustrated/ms-graph-mcp run
 ```
 
-Revokes the refresh token and disconnects the package from your Microsoft account.
-
-## Development
-
-### Project Structure
-
-```
-/ms-graph-mcp
-├── src/
-│   ├── index.ts             # Main entry point for CLI commands
-│   ├── auth.ts              # OAuth 2.0 flow and token management
-│   ├── config.ts            # Local configuration management
-│   ├── tools/               # MCP tool implementations
-│   │   ├── mail.ts          # Outlook Mail API tools
-│   │   ├── calendar.ts      # Outlook Calendar API tools
-│   │   ├── onedrive.ts      # OneDrive API tools
-│   │   └── index.ts         # Tool registry
-│   ├── mcp-interface.ts     # MCP message formats and stdio communication
-│   └── utils.ts             # Utility functions
-├── docs/                    # Documentation and specifications
-├── package.json
-├── jsr.json
-├── tsconfig.json
-└── README.md
-```
-
-### Running in Development
+#### Using Deno (`deno run`)
 
 ```bash
-bun run dev
+deno run -A jsr:@frustrated/ms-graph-mcp run
 ```
 
-### Type Checking
+#### Using Node.js (`npx`)
 
 ```bash
-bun run typecheck
+npx jsr @frustrated/ms-graph-mcp run
 ```
 
-### Building for Distribution
+### Top-Level Tools
+
+The Microsoft Graph MCP CLI exposes various top-level tools, each corresponding to a major Microsoft Graph service. AI agents can discover sub-tools within these categories as needed.
+
+*   **`mail`**: Manage email communications (e.g., list messages, send messages).
+*   **`calendar`**: Organize calendar events (e.g., create events, list events).
+*   **`onedrive`**: Interact with OneDrive files and folders (e.g., list files, upload files).
+
+For detailed information on specific tools and their functionalities, refer to the [Tools Documentation](./docs/tools/README.md).
+
+### Managing Permissions
+
+To view the currently configured Client ID, Tenant ID, and enabled/disabled tools:
+
+#### Using Bun (`bunx`)
 
 ```bash
-bun run build
+bunx jsr:@frustrated/ms-graph-mcp permissions
+```
+
+#### Using Deno (`deno run`)
+
+```bash
+deno run -A jsr:@frustrated/ms-graph-mcp permissions
+```
+
+#### Using Node.js (`npx`)
+
+```bash
+npx jsr @frustrated/ms-graph-mcp permissions
+```
+
+### Revoking Access
+
+To revoke the refresh token and disconnect the package from your Microsoft account:
+
+#### Using Bun (`bunx`)
+
+```bash
+bunx jsr:@frustrated/ms-graph-mcp revoke
+```
+
+#### Using Deno (`deno run`)
+
+```bash
+deno run -A jsr:@frustrated/ms-graph-mcp revoke
+```
+
+#### Using Node.js (`npx`)
+
+```bash
+npx jsr @frustrated/ms-graph-mcp revoke
 ```
 
 ## Documentation
 
 - [Ideation Document](./docs/ms_graph_mcp_ideation.md) - Conceptual design and motivation.
 - [Technical Specification](./docs/ms_graph_mcp_spec.md) - Detailed implementation guide.
+- [Tools Documentation](./docs/tools/README.md) - Comprehensive guide to all available MCP tools.
 
 ## Security Considerations
 
@@ -125,4 +138,4 @@ MIT
 
 ## Contributing
 
-Contributions are welcome. Please open an issue or submit a pull request.
+Refer to the [CONTRIBUTING.md](./CONTRIBUTING.md) guide for details on how to contribute to this project.
