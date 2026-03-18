@@ -1,5 +1,5 @@
 {
-  "name": "@manus/ms-graph-mcp",
+  "name": "@frustrated/ms-graph-mcp",
   "version": "0.1.0",
   "exports": "./src/index.ts",
   "publish": {
