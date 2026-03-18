@@ -3,7 +3,6 @@ import { AddressInfo } from 'net';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import open from 'open';
 import { createServer } from 'http';
 
 const MSAL_CONFIG: Configuration = {
@@ -105,8 +104,8 @@ export async function initAuth(): Promise<void> {
     server.listen(0, () => {
       const addr = server.address() as AddressInfo;
       const finalRedirectUri = `http://localhost:${addr.port}${REDIRECT_URI_PATH}`;
-      console.log(`Please open the following URL in your browser to authenticate:\n${authCodeUrl.replace(`http://localhost:0${REDIRECT_URI_PATH}`, finalRedirectUri)}`);
-      open(authCodeUrl.replace(`http://localhost:0${REDIRECT_URI_PATH}`, finalRedirectUri));
+      const finalAuthUrl = authCodeUrl.replace(`http://localhost:0${REDIRECT_URI_PATH}`, finalRedirectUri);
+      console.log(`\nOpen this URL in your browser to authenticate:\n\n  ${finalAuthUrl}\n`);
     });
 
     server.on('error', (err) => {
