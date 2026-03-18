@@ -32,7 +32,7 @@ Before using the MCP CLI, you need to initialize it once to authenticate with yo
 #### Using Bun (`bunx`)
 
 ```bash
-bunx jsr:@frustrated/ms-graph-mcp init
+bunx jsr @frustrated/ms-graph-mcp init
 ```
 
 #### Using Deno (`deno run`)
@@ -60,7 +60,7 @@ Once initialized, Manus agents will typically run the MCP server to interact wit
 #### Using Bun (`bunx`)
 
 ```bash
-bunx jsr:@frustrated/ms-graph-mcp run
+bunx jsr @frustrated/ms-graph-mcp run
 ```
 
 #### Using Deno (`deno run`)
@@ -92,7 +92,7 @@ To view the currently configured Client ID, Tenant ID, and enabled/disabled tool
 #### Using Bun (`bunx`)
 
 ```bash
-bunx jsr:@frustrated/ms-graph-mcp permissions
+bunx jsr @frustrated/ms-graph-mcp permissions
 ```
 
 #### Using Deno (`deno run`)
@@ -114,7 +114,7 @@ To revoke the refresh token and disconnect the package from your Microsoft accou
 #### Using Bun (`bunx`)
 
 ```bash
-bunx jsr:@frustrated/ms-graph-mcp revoke
+bunx jsr @frustrated/ms-graph-mcp revoke
 ```
 
 #### Using Deno (`deno run`)
