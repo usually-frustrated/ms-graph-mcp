@@ -45,7 +45,7 @@ This will:
 Once initialized, Manus agents will typically run the MCP server to interact with Microsoft Graph. The server listens for JSON requests on `stdin` and outputs JSON responses to `stdout`.
 
 ```bash
-bunx --bun github:usually-frustrated/ms-graph-mcp run
+bunx --bun @frustrated/ms-graph-mcp run
 ```
 
 ### Top-Level Tools
@@ -62,7 +62,7 @@ For detailed information on specific tools and their functionalities, refer to t
 To view the currently configured Client ID, Tenant ID, and enabled/disabled tools:
 
 ```bash
-bunx --bun github:usually-frustrated/ms-graph-mcp permissions
+bunx --bun @frustrated/ms-graph-mcp permissions
 ```
 
 ### Revoking Access
@@ -70,7 +70,7 @@ bunx --bun github:usually-frustrated/ms-graph-mcp permissions
 To revoke authentication and clear all stored tokens:
 
 ```bash
-bunx --bun github:usually-frustrated/ms-graph-mcp revoke
+bunx --bun @frustrated/ms-graph-mcp revoke
 ```
 
 ## Documentation
