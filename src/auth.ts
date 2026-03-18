@@ -3,7 +3,6 @@ import { AddressInfo } from 'net';
 import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import * as keytar from 'keytar';
 import open from 'open';
 import { createServer } from 'http';
 
@@ -24,9 +23,7 @@ const MSAL_CONFIG: Configuration = {
 };
 
 const REDIRECT_URI_PATH = '/auth-callback';
-const TOKEN_CACHE_FILE = path.join(os.homedir(), '.ms-graph-mcp', 'token_cache.json');
-const SERVICE_NAME = 'ms-graph-mcp';
-const ACCOUNT_NAME = 'default_user';
+const TOKEN_CACHE_FILE = path.join(os.homedir(), '.config', 'ms-graph-mcp', 'msal_cache.json');
 const SCOPES = ['User.Read', 'Mail.ReadWrite', 'Calendars.ReadWrite', 'Files.ReadWrite.All', 'offline_access'];
 
 const pca = new PublicClientApplication(MSAL_CONFIG);
@@ -34,19 +31,13 @@ const pca = new PublicClientApplication(MSAL_CONFIG);
 async function saveTokenCache() {
   const serialized = pca.getTokenCache().serialize();
   await fs.mkdir(path.dirname(TOKEN_CACHE_FILE), { recursive: true });
-  await fs.writeFile(TOKEN_CACHE_FILE, serialized);
-  await keytar.setPassword(SERVICE_NAME, ACCOUNT_NAME, serialized);
+  await fs.writeFile(TOKEN_CACHE_FILE, serialized, { mode: 0o600 });
 }
 
 async function loadTokenCache(): Promise<boolean> {
   try {
-    const serialized = await keytar.getPassword(SERVICE_NAME, ACCOUNT_NAME);
-    if (serialized) {
-      pca.getTokenCache().deserialize(serialized);
-      return true;
-    }
-    const fileData = await fs.readFile(TOKEN_CACHE_FILE, 'utf-8');
-    pca.getTokenCache().deserialize(fileData);
+    const data = await fs.readFile(TOKEN_CACHE_FILE, 'utf-8');
+    pca.getTokenCache().deserialize(data);
     return true;
   } catch {
     return false;
@@ -148,7 +139,6 @@ export async function getAccessToken(): Promise<string> {
   } catch (error) {
     console.error('Error refreshing token:', error);
     await fs.unlink(TOKEN_CACHE_FILE).catch(() => {});
-    await keytar.deletePassword(SERVICE_NAME, ACCOUNT_NAME).catch(() => {});
     throw new Error('Failed to refresh access token. Please re-authenticate using `ms-graph-mcp init`.');
   }
 }
@@ -156,7 +146,6 @@ export async function getAccessToken(): Promise<string> {
 export async function revokeAuth(): Promise<void> {
   try {
     await fs.unlink(TOKEN_CACHE_FILE).catch(() => {});
-    await keytar.deletePassword(SERVICE_NAME, ACCOUNT_NAME).catch(() => {});
     console.log('Authentication revoked. All tokens cleared.');
   } catch (error) {
     console.error('Error revoking authentication:', error);
