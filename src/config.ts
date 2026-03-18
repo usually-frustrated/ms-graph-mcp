@@ -1,9 +1,9 @@
-import { promises as fs } from 'node:fs';
-import * as path from 'node:path';
-import * as os from 'node:os';
+import { promises as fs } from "node:fs";
+import * as path from "node:path";
+import * as os from "node:os";
 
-const CONFIG_DIR = path.join(os.homedir(), '.ms-graph-mcp');
-const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
+const CONFIG_DIR = path.join(os.homedir(), ".ms-graph-mcp");
+const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 
 interface AppConfig {
   clientId: string;
@@ -12,18 +12,20 @@ interface AppConfig {
 }
 
 let appConfig: AppConfig = {
-  clientId: process.env.MS_GRAPH_CLIENT_ID || 'YOUR_CENTRALIZED_CLIENT_ID_HERE', // Default centralized client ID
-  tenantId: 'common',
+  clientId: "0a74e52a-4d5b-4005-8dad-6b7cf45ec5fe", // Default centralized client ID
+  tenantId: "common",
   enabledTools: [],
 };
 
 export async function loadConfig(): Promise<AppConfig> {
   try {
-    const configContent = await fs.readFile(CONFIG_FILE, 'utf-8');
+    const configContent = await fs.readFile(CONFIG_FILE, "utf-8");
     appConfig = { ...appConfig, ...JSON.parse(configContent) };
   } catch (error) {
     // If file doesn't exist or is invalid, use default config
-    console.warn('No existing config found or config file is invalid. Using default configuration.');
+    console.warn(
+      "No existing config found or config file is invalid. Using default configuration.",
+    );
   }
   return appConfig;
 }
