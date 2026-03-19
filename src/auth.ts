@@ -62,7 +62,7 @@ async function loadTokenCache(): Promise<boolean> {
 export async function initAuth(): Promise<void> {
   console.log("Initiating Microsoft Graph authentication...");
   console.log(
-    "Please ensure you have registered a multi-tenant application in Azure AD with the following redirect URI: http://localhost:PORT/auth-callback",
+    "Please ensure you have registered a multi-tenant application in Azure AD with the following redirect URI: http://localhost/auth-callback",
   );
 
   const cryptoProvider = new CryptoProvider();
@@ -70,7 +70,7 @@ export async function initAuth(): Promise<void> {
 
   const authCodeUrlParameters = {
     scopes: SCOPES,
-    redirectUri: `http://localhost:0${REDIRECT_URI_PATH}`,
+    redirectUri: `http://localhost${REDIRECT_URI_PATH}`,
     codeChallenge: pkceCodes.challenge,
     codeChallengeMethod: "S256" as const,
   };
