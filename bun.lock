@@ -5,7 +5,7 @@
     "": {
       "name": "@frustrated/ms-graph-mcp",
       "dependencies": {
-        "@azure/msal-node": "latest",
+        "@azure/msal-node": "^3.0.0",
         "@commander-js/extra-typings": "^14.0.0",
         "@microsoft/microsoft-graph-client": "^3.0.0",
       },

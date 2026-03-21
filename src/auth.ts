@@ -61,21 +61,9 @@ async function loadTokenCache(): Promise<boolean> {
 
 export async function initAuth(): Promise<void> {
   console.log("Initiating Microsoft Graph authentication...");
-  console.log(
-    "Please ensure you have registered a multi-tenant application in Azure AD with the following redirect URI: http://localhost/auth-callback",
-  );
 
   const cryptoProvider = new CryptoProvider();
   const pkceCodes = await cryptoProvider.generatePkceCodes();
-
-  const authCodeUrlParameters = {
-    scopes: SCOPES,
-    redirectUri: `http://localhost${REDIRECT_URI_PATH}`,
-    codeChallenge: pkceCodes.challenge,
-    codeChallengeMethod: "S256" as const,
-  };
-
-  const authCodeUrl = await pca.getAuthCodeUrl(authCodeUrlParameters);
 
   return new Promise((resolve, reject) => {
     const server = createServer(async (req, res) => {
@@ -86,10 +74,11 @@ export async function initAuth(): Promise<void> {
         if (code) {
           try {
             const addr = server.address() as AddressInfo;
+            const redirectUri = `http://localhost:${addr.port}${REDIRECT_URI_PATH}`;
             const tokenResult = await pca.acquireTokenByCode({
               code,
               scopes: SCOPES,
-              redirectUri: `http://localhost:${addr.port}${REDIRECT_URI_PATH}`,
+              redirectUri,
               codeVerifier: pkceCodes.verifier,
             });
 
@@ -123,16 +112,22 @@ export async function initAuth(): Promise<void> {
       }
     });
 
-    server.listen(0, () => {
-      const addr = server.address() as AddressInfo;
-      const finalRedirectUri = `http://localhost:${addr.port}${REDIRECT_URI_PATH}`;
-      const finalAuthUrl = authCodeUrl.replace(
-        `http://localhost:0${REDIRECT_URI_PATH}`,
-        finalRedirectUri,
-      );
-      console.log(
-        `\nOpen this URL in your browser to authenticate:\n\n  ${finalAuthUrl}\n`,
-      );
+    server.listen(0, async () => {
+      try {
+        const addr = server.address() as AddressInfo;
+        const redirectUri = `http://localhost:${addr.port}${REDIRECT_URI_PATH}`;
+        const authCodeUrl = await pca.getAuthCodeUrl({
+          scopes: SCOPES,
+          redirectUri,
+          codeChallenge: pkceCodes.challenge,
+          codeChallengeMethod: "S256" as const,
+        });
+        console.log(
+          `\nOpen this URL in your browser to authenticate:\n\n  ${authCodeUrl}\n`,
+        );
+      } catch (err) {
+        server.close(() => reject(err));
+      }
     });
 
     server.on("error", (err) => {
