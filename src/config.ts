@@ -41,6 +41,10 @@ export function getConfig(): AppConfig {
 }
 
 export function isToolEnabled(toolName: string): boolean {
+  // Empty enabledTools means all tools are enabled (no explicit restriction)
+  if (appConfig.enabledTools.length === 0) {
+    return true;
+  }
   return appConfig.enabledTools.includes(toolName);
 }
 
