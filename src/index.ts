@@ -71,7 +71,7 @@ program
   .command("run")
   .description("Start the MCP server to listen for commands via stdin/stdout")
   .action(async () => {
-    startMcpServer();
+    await startMcpServer();
   });
 
 program.parse(process.argv);

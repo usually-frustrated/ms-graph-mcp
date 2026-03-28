@@ -2,25 +2,20 @@
 
 ## Summary
 
-This document records a code-level evaluation of the `run` command and the MCP server implementation in `src/mcp-interface.ts`, performed against version `0.1.8`. Three bugs were identified and fixed in `0.1.9`.
+This document records a code-level evaluation of the `run` command and the MCP server implementation in `src/mcp-interface.ts`.
+
+- **v0.1.8 → v0.1.9:** Three bugs were identified and fixed (all tools blocked, stdout pollution from startup banner and diagnostic logging).
+- **v0.1.9 → v0.1.10:** Migrated from a custom line-delimited JSON protocol to the official [`@modelcontextprotocol/sdk`](https://www.npmjs.com/package/@modelcontextprotocol/sdk) with `StdioServerTransport`, making the server compatible with standard MCP clients.
 
 ---
 
-## Protocol Design
+## Protocol Design (v0.1.10+)
 
-The server uses a **custom line-delimited JSON protocol** over `stdio` — not the industry-standard [JSON-RPC 2.0](https://www.jsonrpc.org/specification) that the Model Context Protocol (MCP) specification requires. Each request is a single UTF-8 line:
+The server now uses the **official MCP SDK** (`@modelcontextprotocol/sdk` v1.28+) with `StdioServerTransport`. This implements the JSON-RPC 2.0 framing and MCP protocol negotiation that standard clients (Claude Desktop, Cursor, etc.) expect.
 
-```json
-{ "type": "request", "id": "1", "tool": "mail.list_messages", "input": { "top": 10 } }
-```
+Tool inputs are validated with [Zod](https://zod.dev) schemas. The `tools/list` discovery endpoint is provided automatically by the SDK. A proper `initialize` handshake is handled by the transport layer.
 
-Each response is a single UTF-8 line:
-
-```json
-{ "type": "response", "id": "1", "status": "success", "output": { ... } }
-```
-
-**Implication:** Standard MCP clients (Claude Desktop, Cursor, etc.) that speak JSON-RPC 2.0 cannot connect to this server. The server is compatible only with clients that speak this custom protocol (e.g., Manus). The README documents this protocol correctly.
+> **Note on `mcp-lite`:** `mcp-lite` (Fiberplane) was considered but is HTTP+SSE only and does not support stdio transport. It is not suitable for a CLI-launched server that communicates over `stdin`/`stdout`.
 
 ---
 
@@ -89,21 +84,54 @@ export function error(message: string, err?: Error) {
 
 ---
 
-## What Works Correctly
+## Migration to Official SDK (v0.1.9 → v0.1.10)
 
-- **Stdin framing:** Newline-delimited buffering handles partial chunks correctly.
-- **Error handling:** Parse errors, unknown tools, and tool execution failures all produce well-formed error responses.
-- **Auth integration:** `getAccessToken()` and Graph client initialization are correctly wired.
-- **Tool registry:** `tools/index.ts` exports `mail.list_messages` and `calendar.create_event` with correct signatures.
-- **`init` / `revoke` / `permissions` commands:** These all operate independently of the stdio channel and work correctly.
+**File:** `src/mcp-interface.ts`
+
+**Motivation:** The original custom protocol was incompatible with standard MCP clients. Replacing it with `@modelcontextprotocol/sdk` + `StdioServerTransport` gains:
+
+- **Standard JSON-RPC 2.0 framing** — clients like Claude Desktop work out of the box.
+- **Automatic `tools/list` discovery** — clients can enumerate available tools without out-of-band documentation.
+- **`initialize` handshake** — capability negotiation handled by the SDK.
+- **Zod-validated inputs** — tool inputs are validated before handlers run.
+
+**New dependencies:**
+
+| Package | Version | Purpose |
+|---|---|---|
+| `@modelcontextprotocol/sdk` | `^1.28.0` | Official MCP server + StdioServerTransport |
+| `zod` | `^3.24.2` | Input schema validation and type inference |
+
+**After migration, `src/mcp-interface.ts` uses:**
+
+```typescript
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+
+const server = new McpServer({ name: 'ms-graph-mcp', version: '0.1.10' });
+
+server.tool('mail.list_messages', '...', { /* zod schema */ }, async (input) => {
+  // ... call Graph API, return { content: [{ type: 'text', text: '...' }] }
+});
+
+await server.connect(new StdioServerTransport());
+```
 
 ---
 
-## Remaining Limitations (out of scope for this patch)
+## What Works Correctly
+
+- **Auth integration:** `getAccessToken()` and Graph client initialization are correctly wired.
+- **Tool handlers:** `mail.list_messages` and `calendar.create_event` implement the actual Graph API calls and are reused unchanged.
+- **`init` / `revoke` / `permissions` commands:** These all operate independently of the stdio channel and work correctly.
+- **`enabledTools` config:** When `enabledTools` is empty (default), all tools are registered. When it lists specific tool names, only those are registered.
+- **Diagnostic logging:** All server-side logs go to `stderr`, keeping `stdout` clean for the protocol.
+
+---
+
+## Remaining Limitations
 
 | Limitation | Detail |
 |---|---|
-| Custom protocol | Not JSON-RPC 2.0; incompatible with standard MCP clients. A future major version could add an `--mcp-standard` mode. |
-| No `tools/list` introspection | Clients must know tool names out of band; there is no discovery mechanism. |
-| No `initialize` handshake | Standard MCP requires a capability-negotiation round-trip before tool calls. |
-| Auth required before `run` | If `~/.config/ms-graph-mcp/msal_cache.json` is absent, the server starts but every tool call fails. |
+| Auth required before `run` | If `~/.config/ms-graph-mcp/msal_cache.json` is absent, the server starts but every tool call fails at auth time. |
+| Limited tool set | Only `mail.list_messages` and `calendar.create_event` are implemented. |

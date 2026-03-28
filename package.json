@@ -1,6 +1,6 @@
 {
   "name": "@frustrated/ms-graph-mcp",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "A JSR-based TypeScript MCP package for personal Microsoft Graph access via CLI",
   "type": "module",
   "main": "./src/index.ts",
@@ -19,12 +19,16 @@
   "imports": {
     "@azure/msal-node": "npm:@azure/msal-node@^3.0.0",
     "@microsoft/microsoft-graph-client": "npm:@microsoft/microsoft-graph-client@^3.0.0",
-    "@commander-js/extra-typings": "npm:@commander-js/extra-typings@^14.0.0"
+    "@commander-js/extra-typings": "npm:@commander-js/extra-typings@^14.0.0",
+    "@modelcontextprotocol/sdk": "npm:@modelcontextprotocol/sdk@^1.28.0",
+    "zod": "npm:zod@^3.24.2"
   },
   "dependencies": {
     "@azure/msal-node": "^3.0.0",
     "@microsoft/microsoft-graph-client": "^3.0.0",
-    "@commander-js/extra-typings": "^14.0.0"
+    "@commander-js/extra-typings": "^14.0.0",
+    "@modelcontextprotocol/sdk": "^1.28.0",
+    "zod": "^3.24.2"
   },
   "publish": {
     "include": [
