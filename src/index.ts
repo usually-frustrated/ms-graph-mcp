@@ -71,10 +71,7 @@ program
   .command("run")
   .description("Start the MCP server to listen for commands via stdin/stdout")
   .action(async () => {
-    console.log("MCP server started. Listening for commands on stdin...");
-    // Placeholder for MCP interface logic
-    // This will be implemented in src/mcp-interface.ts and called here
-    startMcpServer();
+    await startMcpServer();
   });
 
 program.parse(process.argv);

@@ -1,122 +1,72 @@
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { z } from 'zod';
 import { getAccessToken } from './auth.ts';
-import { getConfig, isToolEnabled } from './config.ts';
-import { error, log } from './utils.ts';
+import { isToolEnabled } from './config.ts';
+import { log } from './utils.ts';
 import { Client } from '@microsoft/microsoft-graph-client';
+import * as mail from './tools/mail.ts';
+import * as calendar from './tools/calendar.ts';
 
-// Define MCP message interfaces
-interface McpRequest {
-  type: 'request';
-  id: string;
-  tool: string;
-  input: any;
+function buildGraphClient(accessToken: string): Client {
+  return Client.init({
+    authProvider: (done) => done(null, accessToken),
+  });
 }
 
-interface McpResponse {
-  type: 'response';
-  id: string;
-  status: 'success' | 'error';
-  output?: any;
-  error?: { code: string; message: string };
-}
+export async function startMcpServer(): Promise<void> {
+  const server = new McpServer({
+    name: 'ms-graph-mcp',
+    version: '0.1.10',
+  });
 
-// Placeholder for registered tools
-import { tools as registeredTools } from './tools/index.ts';
-
-
-async function processMcpRequest(request: McpRequest): Promise<McpResponse> {
-  const config = getConfig();
-
-  if (!isToolEnabled(request.tool)) {
-    return {
-      type: 'response',
-      id: request.id,
-      status: 'error',
-      error: { code: 'TOOL_DISABLED', message: `Tool '${request.tool}' is disabled.` },
-    };
-  }
-
-  const toolHandler = (registeredTools as Record<string, ((graphClient: Client, input: any) => Promise<any>) | undefined>)[request.tool];
-  if (!toolHandler) {
-    return {
-      type: 'response',
-      id: request.id,
-      status: 'error',
-      error: { code: 'TOOL_NOT_FOUND', message: `Tool '${request.tool}' not found.` },
-    };
-  }
-
-  try {
-    const accessToken = await getAccessToken();
-    const graphClient = Client.init({
-      authProvider: (done) => {
-        done(null, accessToken);
+  if (isToolEnabled('mail.list_messages')) {
+    server.tool(
+      'mail.list_messages',
+      'List email messages from the signed-in user\'s mailbox',
+      {
+        folderId: z.string().optional().describe('Mail folder ID (defaults to Inbox)'),
+        top: z.number().int().min(1).optional().describe('Maximum number of messages to return'),
+        filter: z.string().optional().describe('OData $filter expression'),
       },
-    });
-
-    const output = await toolHandler(graphClient, request.input);
-    return {
-      type: 'response',
-      id: request.id,
-      status: 'success',
-      output,
-    };
-  } catch (err: any) {
-    error(`Error executing tool '${request.tool}':`, err);
-    return {
-      type: 'response',
-      id: request.id,
-      status: 'error',
-      error: { code: err.code || 'TOOL_EXECUTION_ERROR', message: err.message || 'An unknown error occurred.' },
-    };
+      async ({ folderId, top, filter }) => {
+        const token = await getAccessToken();
+        const result = await mail.listMessages(buildGraphClient(token), { folderId, top, filter });
+        return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+      },
+    );
   }
-}
 
-export function startMcpServer() {
-  log('MCP server started. Listening for commands on stdin...');
+  if (isToolEnabled('calendar.create_event')) {
+    server.tool(
+      'calendar.create_event',
+      'Create a new event in the signed-in user\'s calendar',
+      {
+        subject: z.string().describe('Event title'),
+        start: z.object({
+          dateTime: z.string().describe('ISO 8601 date-time string'),
+          timeZone: z.string().describe('IANA timezone name, e.g. "America/New_York"'),
+        }),
+        end: z.object({
+          dateTime: z.string().describe('ISO 8601 date-time string'),
+          timeZone: z.string().describe('IANA timezone name'),
+        }),
+        content: z.string().optional().describe('HTML body of the event'),
+        attendees: z.array(z.object({
+          emailAddress: z.string().email(),
+          type: z.enum(['required', 'optional']),
+        })).optional().describe('List of attendees'),
+        location: z.string().optional().describe('Event location display name'),
+      },
+      async (input) => {
+        const token = await getAccessToken();
+        const result = await calendar.createEvent(buildGraphClient(token), input);
+        return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+      },
+    );
+  }
 
-  process.stdin.setEncoding('utf8');
-
-  let buffer = '';
-  process.stdin.on('data', async (chunk) => {
-    buffer += chunk;
-    let newlineIndex;
-    while ((newlineIndex = buffer.indexOf('\n')) !== -1) {
-      const line = buffer.substring(0, newlineIndex).trim();
-      buffer = buffer.substring(newlineIndex + 1);
-
-      if (line) {
-        try {
-          const request: McpRequest = JSON.parse(line);
-          if (request.type === 'request' && request.id && request.tool) {
-            const response = await processMcpRequest(request);
-            process.stdout.write(JSON.stringify(response) + '\n');
-          } else {
-            error('Invalid MCP request format:', new Error(line));
-            process.stdout.write(JSON.stringify({
-              type: 'response',
-              id: request.id || 'unknown',
-              status: 'error',
-              error: { code: 'INVALID_REQUEST', message: 'Invalid MCP request format.' },
-            }) + '\n');
-          }
-        } catch (parseError: any) {
-          error('Failed to parse stdin input as JSON:', parseError);
-          process.stdout.write(JSON.stringify({
-            type: 'response',
-            id: 'unknown',
-            status: 'error',
-            error: { code: 'JSON_PARSE_ERROR', message: 'Invalid JSON input.' },
-          }) + '\n');
-        }
-      }
-    }
-  });
-
-  process.stdin.on('end', () => {
-    log('Stdin closed. MCP server shutting down.');
-  });
-
-  process.stdin.on('error', (err) => {
-    error('Stdin error:', err);
-  });
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+  log('MCP server started (JSON-RPC 2.0 over stdio). Listening for commands...');
 }
