@@ -18,12 +18,12 @@ function buildGraphClient(accessToken: string): Client {
 export async function startMcpServer(): Promise<void> {
   const server = new McpServer({
     name: 'ms-graph-mcp',
-    version: '0.1.11',
+    version: '0.1.12',
   });
 
-  if (isToolEnabled('mail.list_messages')) {
+  if (isToolEnabled('mail_list_messages')) {
     server.tool(
-      'mail.list_messages',
+      'mail_list_messages',
       'List email messages from the signed-in user\'s mailbox',
       {
         folderId: z.string().optional().describe('Mail folder ID (defaults to Inbox)'),
@@ -38,9 +38,9 @@ export async function startMcpServer(): Promise<void> {
     );
   }
 
-  if (isToolEnabled('calendar.create_event')) {
+  if (isToolEnabled('calendar_create_event')) {
     server.tool(
-      'calendar.create_event',
+      'calendar_create_event',
       'Create a new event in the signed-in user\'s calendar',
       {
         subject: z.string().describe('Event title'),
@@ -67,9 +67,9 @@ export async function startMcpServer(): Promise<void> {
     );
   }
 
-  if (isToolEnabled('onedrive.list_items')) {
+  if (isToolEnabled('onedrive_list_items')) {
     server.tool(
-      'onedrive.list_items',
+      'onedrive_list_items',
       'List files and folders from OneDrive root or a specific folder',
       {
         folderPath: z.string().trim().optional().describe('Folder path relative to OneDrive root, e.g. /Projects'),
@@ -85,9 +85,9 @@ export async function startMcpServer(): Promise<void> {
     );
   }
 
-  if (isToolEnabled('onedrive.get_item')) {
+  if (isToolEnabled('onedrive_get_item')) {
     server.tool(
-      'onedrive.get_item',
+      'onedrive_get_item',
       'Get metadata for a OneDrive file or folder by path or item ID',
       {
         path: z.string().trim().optional().describe('Item path relative to OneDrive root, e.g. /Projects/report.docx'),
@@ -102,9 +102,9 @@ export async function startMcpServer(): Promise<void> {
     );
   }
 
-  if (isToolEnabled('onedrive.search_items')) {
+  if (isToolEnabled('onedrive_search_items')) {
     server.tool(
-      'onedrive.search_items',
+      'onedrive_search_items',
       'Search OneDrive for files and folders',
       {
         query: z.string().trim().min(1).describe('Search query'),
@@ -119,9 +119,9 @@ export async function startMcpServer(): Promise<void> {
     );
   }
 
-  if (isToolEnabled('onedrive.create_folder')) {
+  if (isToolEnabled('onedrive_create_folder')) {
     server.tool(
-      'onedrive.create_folder',
+      'onedrive_create_folder',
       'Create a folder in OneDrive root or under a specific parent',
       {
         name: z.string().trim().min(1).describe('Folder name'),

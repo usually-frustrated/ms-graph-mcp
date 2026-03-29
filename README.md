@@ -53,9 +53,9 @@ bunx --bun @frustrated/ms-graph-mcp run
 
 The Microsoft Graph MCP CLI exposes the following tools:
 
-- **`mail`**: Manage email communications (e.g., list messages).
-- **`calendar`**: Organize calendar events (e.g., create events).
-- **`onedrive`**: Work with OneDrive files and folders.
+- **`mail_list_messages`**: Manage email communications (e.g., list messages).
+- **`calendar_create_event`**: Organize calendar events (e.g., create events).
+- **`onedrive_*`**: Work with OneDrive files and folders.
 
 For detailed information on specific tools and their functionalities, refer to the [Tools Documentation](./docs/tools/README.md).
 

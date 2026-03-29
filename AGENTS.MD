@@ -110,7 +110,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 
 const server = new McpServer({ name: 'ms-graph-mcp', version: '0.1.10' });
 
-server.tool('mail.list_messages', '...', { /* zod schema */ }, async (input) => {
+server.tool('mail_list_messages', '...', { /* zod schema */ }, async (input) => {
   // ... call Graph API, return { content: [{ type: 'text', text: '...' }] }
 });
 
@@ -122,7 +122,7 @@ await server.connect(new StdioServerTransport());
 ## What Works Correctly
 
 - **Auth integration:** `getAccessToken()` and Graph client initialization are correctly wired.
-- **Tool handlers:** `mail.list_messages` and `calendar.create_event` implement the actual Graph API calls and are reused unchanged.
+- **Tool handlers:** `mail_list_messages` and `calendar_create_event` implement the actual Graph API calls and are reused unchanged.
 - **`init` / `revoke` / `permissions` commands:** These all operate independently of the stdio channel and work correctly.
 - **`enabledTools` config:** When `enabledTools` is empty (default), all tools are registered. When it lists specific tool names, only those are registered.
 - **Diagnostic logging:** All server-side logs go to `stderr`, keeping `stdout` clean for the protocol.
@@ -134,4 +134,4 @@ await server.connect(new StdioServerTransport());
 | Limitation | Detail |
 |---|---|
 | Auth required before `run` | If `~/.config/ms-graph-mcp/msal_cache.json` is absent, the server starts but every tool call fails at auth time. |
-| Limited tool set | Only `mail.list_messages` and `calendar.create_event` are implemented. |
+| Limited tool set | Only `mail_list_messages` and `calendar_create_event` are implemented. |

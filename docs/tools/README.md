@@ -10,4 +10,4 @@ This document provides an overview of the top-level tools available in the Micro
 
 ## How to Discover Sub-Tools
 
-AI agents can discover the specific sub-tools available within each top-level tool by referring to their respective documentation files (e.g., `mail.md` for mail-related operations). When interacting with the MCP CLI, agents can specify the full tool path (e.g., `mail.list_messages`) to invoke a particular function.
+AI agents can discover the specific sub-tools available within each top-level tool by referring to their respective documentation files (e.g., `mail.md` for mail-related operations). When interacting with the MCP CLI, agents can specify the full tool name (e.g., `mail_list_messages`) to invoke a particular function.

@@ -11,6 +11,10 @@ interface AppConfig {
   enabledTools: string[]; // List of tool names that are enabled
 }
 
+function normalizeToolName(toolName: string): string {
+  return toolName.replace(/[.-]/g, '_');
+}
+
 let appConfig: AppConfig = {
   clientId: "0a74e52a-4d5b-4005-8dad-6b7cf45ec5fe", // Default centralized client ID
   tenantId: "common",
@@ -45,7 +49,9 @@ export function isToolEnabled(toolName: string): boolean {
   if (appConfig.enabledTools.length === 0) {
     return true;
   }
-  return appConfig.enabledTools.includes(toolName);
+
+  const normalizedToolName = normalizeToolName(toolName);
+  return appConfig.enabledTools.some((enabledTool) => normalizeToolName(enabledTool) === normalizedToolName);
 }
 
 // Initialize config on module load

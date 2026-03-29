@@ -2,7 +2,7 @@
 
 This document details the sub-tools available under the `mail` top-level tool. These tools allow interaction with the user's Microsoft 365 mailbox.
 
-## `mail.list_messages`
+## `mail_list_messages`
 
 Lists messages from the user's mailbox.
 

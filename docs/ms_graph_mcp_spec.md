@@ -94,7 +94,7 @@ Refresh tokens are highly sensitive and must be stored securely.
 
 Each Microsoft Graph API will be exposed as one or more MCP tools. Tools will be defined with clear input and output schemas using `zod` for validation.
 
-### 6.1 Example: `mail.list_messages`
+### 6.1 Example: `mail_list_messages`
 
 -   **Description:** Lists mail messages from the user's inbox or specified folder.
 -   **Input Schema:**
@@ -121,7 +121,7 @@ Each Microsoft Graph API will be exposed as one or more MCP tools. Tools will be
     }
     ```
 
-### 6.2 Example: `calendar.create_event`
+### 6.2 Example: `calendar_create_event`
 
 -   **Description:** Creates a new calendar event.
 -   **Input Schema:**

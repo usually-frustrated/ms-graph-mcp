@@ -59,9 +59,9 @@ const tools = await client.listTools();
 console.log(JSON.stringify(tools, null, 2));
 
 // Pick one tool that is enabled in your config.
-// Example: mail.list_messages
+// Example: mail_list_messages
 const result = await client.callTool({
-  name: 'mail.list_messages',
+  name: 'mail_list_messages',
   arguments: { top: 1 },
 });
 

@@ -2,7 +2,7 @@
 
 This document details the sub-tools available under the `onedrive` top-level tool.
 
-## `onedrive.list_items`
+## `onedrive_list_items`
 
 Lists files and folders from OneDrive root or a specific folder.
 
@@ -13,7 +13,7 @@ Lists files and folders from OneDrive root or a specific folder.
 * `top` (number, optional): Maximum number of items to return.
 * `select` (string, optional): Optional OData `$select` clause.
 
-## `onedrive.get_item`
+## `onedrive_get_item`
 
 Gets metadata for a OneDrive file or folder.
 
@@ -23,7 +23,7 @@ Gets metadata for a OneDrive file or folder.
 * `itemId` (string, optional): Drive item ID.
 * `select` (string, optional): Optional OData `$select` clause.
 
-## `onedrive.search_items`
+## `onedrive_search_items`
 
 Searches OneDrive for files and folders.
 
@@ -33,7 +33,7 @@ Searches OneDrive for files and folders.
 * `top` (number, optional): Maximum number of items to return.
 * `select` (string, optional): Optional OData `$select` clause.
 
-## `onedrive.create_folder`
+## `onedrive_create_folder`
 
 Creates a folder in OneDrive root or under a specific parent folder.
 

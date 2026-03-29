@@ -2,7 +2,7 @@
 
 This document details the sub-tools available under the `calendar` top-level tool. These tools allow interaction with the user's Microsoft 365 calendar.
 
-## `calendar.create_event`
+## `calendar_create_event`
 
 Creates a new event in the user's calendar.
 
