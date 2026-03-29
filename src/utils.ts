@@ -18,4 +18,32 @@ export function warn(message: string) {
   log(message, 'warn');
 }
 
-// Placeholder for future file-based logging or other utilities
+export function describeGraphError(err: unknown): string {
+  if (err instanceof Error) {
+    const parts: string[] = [err.message];
+    const graphErr = err as Error & {
+      code?: string;
+      statusCode?: number;
+      body?: { error?: { code?: string; message?: string } };
+      response?: { status?: number; body?: { error?: { code?: string; message?: string } } };
+    };
+
+    const status = graphErr.statusCode ?? graphErr.response?.status;
+    const code = graphErr.code ?? graphErr.body?.error?.code ?? graphErr.response?.body?.error?.code;
+    const message = graphErr.body?.error?.message ?? graphErr.response?.body?.error?.message;
+
+    if (status) {
+      parts.unshift(`HTTP ${status}`);
+    }
+    if (code) {
+      parts.push(`code=${code}`);
+    }
+    if (message && message !== err.message) {
+      parts.push(message);
+    }
+
+    return parts.join(' | ');
+  }
+
+  return String(err);
+}

@@ -20,6 +20,7 @@ A TypeScript MCP (Model Context Protocol) package for personal Microsoft Graph a
 - **Secure Token Storage:** Stores the MSAL token cache at `~/.config/ms-graph-mcp/msal_cache.json` with restricted file permissions (`0600`).
 - **User Control:** Provides CLI commands for permission management and revocation.
 - **MCP Standard:** Adheres to the Model Context Protocol for broad agent compatibility.
+- **OneDrive Support:** Lists, inspects, searches, and creates OneDrive files and folders.
 
 ## Usage with Manus Agents
 
@@ -54,6 +55,7 @@ The Microsoft Graph MCP CLI exposes the following tools:
 
 - **`mail`**: Manage email communications (e.g., list messages).
 - **`calendar`**: Organize calendar events (e.g., create events).
+- **`onedrive`**: Work with OneDrive files and folders.
 
 For detailed information on specific tools and their functionalities, refer to the [Tools Documentation](./docs/tools/README.md).
 
@@ -78,6 +80,7 @@ bunx --bun @frustrated/ms-graph-mcp revoke
 - [Ideation Document](./docs/ms_graph_mcp_ideation.md) - Conceptual design and motivation.
 - [Technical Specification](./docs/ms_graph_mcp_spec.md) - Detailed implementation guide.
 - [Tools Documentation](./docs/tools/README.md) - Comprehensive guide to all available MCP tools.
+- [MCP Smoke Test](./docs/mcp-smoke-test.md) - How to test the server directly over stdio with the MCP SDK.
 
 ## Security Considerations
 

@@ -7,6 +7,7 @@ import { log } from './utils.ts';
 import { Client } from '@microsoft/microsoft-graph-client';
 import * as mail from './tools/mail.ts';
 import * as calendar from './tools/calendar.ts';
+import * as onedrive from './tools/onedrive.ts';
 
 function buildGraphClient(accessToken: string): Client {
   return Client.init({
@@ -17,7 +18,7 @@ function buildGraphClient(accessToken: string): Client {
 export async function startMcpServer(): Promise<void> {
   const server = new McpServer({
     name: 'ms-graph-mcp',
-    version: '0.1.10',
+    version: '0.1.11',
   });
 
   if (isToolEnabled('mail.list_messages')) {
@@ -61,6 +62,75 @@ export async function startMcpServer(): Promise<void> {
       async (input) => {
         const token = await getAccessToken();
         const result = await calendar.createEvent(buildGraphClient(token), input);
+        return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+      },
+    );
+  }
+
+  if (isToolEnabled('onedrive.list_items')) {
+    server.tool(
+      'onedrive.list_items',
+      'List files and folders from OneDrive root or a specific folder',
+      {
+        folderPath: z.string().trim().optional().describe('Folder path relative to OneDrive root, e.g. /Projects'),
+        itemId: z.string().trim().optional().describe('Drive item ID to list children from'),
+        top: z.number().int().min(1).max(999).optional().describe('Maximum number of items to return'),
+        select: z.string().trim().optional().describe('Optional OData $select clause'),
+      },
+      async (input) => {
+        const token = await getAccessToken();
+        const result = await onedrive.listItems(buildGraphClient(token), input);
+        return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+      },
+    );
+  }
+
+  if (isToolEnabled('onedrive.get_item')) {
+    server.tool(
+      'onedrive.get_item',
+      'Get metadata for a OneDrive file or folder by path or item ID',
+      {
+        path: z.string().trim().optional().describe('Item path relative to OneDrive root, e.g. /Projects/report.docx'),
+        itemId: z.string().trim().optional().describe('Drive item ID'),
+        select: z.string().trim().optional().describe('Optional OData $select clause'),
+      },
+      async (input) => {
+        const token = await getAccessToken();
+        const result = await onedrive.getItem(buildGraphClient(token), input);
+        return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+      },
+    );
+  }
+
+  if (isToolEnabled('onedrive.search_items')) {
+    server.tool(
+      'onedrive.search_items',
+      'Search OneDrive for files and folders',
+      {
+        query: z.string().trim().min(1).describe('Search query'),
+        top: z.number().int().min(1).max(999).optional().describe('Maximum number of items to return'),
+        select: z.string().trim().optional().describe('Optional OData $select clause'),
+      },
+      async (input) => {
+        const token = await getAccessToken();
+        const result = await onedrive.searchItems(buildGraphClient(token), input);
+        return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
+      },
+    );
+  }
+
+  if (isToolEnabled('onedrive.create_folder')) {
+    server.tool(
+      'onedrive.create_folder',
+      'Create a folder in OneDrive root or under a specific parent',
+      {
+        name: z.string().trim().min(1).describe('Folder name'),
+        parentPath: z.string().trim().optional().describe('Parent folder path relative to OneDrive root'),
+        parentItemId: z.string().trim().optional().describe('Parent drive item ID'),
+      },
+      async (input) => {
+        const token = await getAccessToken();
+        const result = await onedrive.createFolder(buildGraphClient(token), input);
         return { content: [{ type: 'text' as const, text: JSON.stringify(result, null, 2) }] };
       },
     );

@@ -1,5 +1,23 @@
 import { Client } from '@microsoft/microsoft-graph-client';
-import { log, error } from '../utils.ts';
+import { log, error, describeGraphError } from '../utils.ts';
+
+function assertValidEventTimeRange(start: { dateTime: string; timeZone: string }, end: { dateTime: string; timeZone: string }): void {
+  const startDate = new Date(start.dateTime);
+  const endDate = new Date(end.dateTime);
+
+  if (Number.isNaN(startDate.getTime())) {
+    throw new Error(`Invalid start.dateTime value: ${start.dateTime}`);
+  }
+  if (Number.isNaN(endDate.getTime())) {
+    throw new Error(`Invalid end.dateTime value: ${end.dateTime}`);
+  }
+  if (endDate.getTime() <= startDate.getTime()) {
+    throw new Error('Event end time must be after the start time.');
+  }
+  if (!start.timeZone.trim() || !end.timeZone.trim()) {
+    throw new Error('Both start.timeZone and end.timeZone are required.');
+  }
+}
 
 export async function createEvent(graphClient: Client, input: {
   subject: string;
@@ -10,6 +28,8 @@ export async function createEvent(graphClient: Client, input: {
   location?: string;
 }): Promise<any> {
   try {
+    assertValidEventTimeRange(input.start, input.end);
+
     const event = {
       subject: input.subject,
       start: input.start,
@@ -31,11 +51,6 @@ export async function createEvent(graphClient: Client, input: {
     };
   } catch (err: any) {
     error('Error creating calendar event:', err);
-    return {
-      id: null,
-      webLink: null,
-      status: 'failed',
-      errorMessage: err.message,
-    };
+    throw new Error(`Failed to create calendar event: ${describeGraphError(err)}`);
   }
 }

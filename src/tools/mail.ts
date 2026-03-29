@@ -1,10 +1,36 @@
 import { Client } from '@microsoft/microsoft-graph-client';
-import { log, error } from '../utils.ts';
+import { log, error, describeGraphError } from '../utils.ts';
+
+const WELL_KNOWN_FOLDERS = new Map<string, string>([
+  ['inbox', 'inbox'],
+  ['sent', 'sentitems'],
+  ['sentitems', 'sentitems'],
+  ['drafts', 'drafts'],
+  ['deleted', 'deleteditems'],
+  ['deleteditems', 'deleteditems'],
+  ['archive', 'archive'],
+  ['junk', 'junkemail'],
+  ['junkemail', 'junkemail'],
+  ['outbox', 'outbox'],
+]);
+
+function normalizeFolderId(folderId?: string): string | undefined {
+  if (!folderId) {
+    return undefined;
+  }
+
+  const trimmed = folderId.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  return WELL_KNOWN_FOLDERS.get(trimmed.toLowerCase()) ?? trimmed;
+}
 
 export async function listMessages(graphClient: Client, input: { folderId?: string; top?: number; filter?: string }): Promise<any> {
   try {
-    let request = graphClient.api(input.folderId ? `/me/mailFolders/${input.folderId}/messages` : 
-'/me/messages');
+    const folderId = normalizeFolderId(input.folderId);
+    let request = graphClient.api(folderId ? `/me/mailFolders/${folderId}/messages` : '/me/messages');
 
     if (input.top) {
       request = request.top(input.top);
@@ -29,6 +55,6 @@ export async function listMessages(graphClient: Client, input: { folderId?: stri
     };
   } catch (err: any) {
     error('Error listing messages:', err);
-    throw err;
+    throw new Error(`Failed to list messages: ${describeGraphError(err)}`);
   }
 }

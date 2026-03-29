@@ -18,7 +18,9 @@ const MSAL_CONFIG: Configuration = {
   system: {
     loggerOptions: {
       loggerCallback(loglevel, message, containsPii) {
-        console.log(message);
+        if (!containsPii) {
+          process.stderr.write(`${message}\n`);
+        }
       },
       piiLoggingEnabled: false,
       logLevel: LogLevel.Verbose,

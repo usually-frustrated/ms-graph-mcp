@@ -9,7 +9,7 @@ const program = new Command();
 program
   .name("ms-graph-mcp")
   .description("CLI for JSR-based Microsoft Graph MCP package")
-  .version("0.1.0");
+  .version("0.1.11");
 
 program
   .command("init")

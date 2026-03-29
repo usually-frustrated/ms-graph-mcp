@@ -6,7 +6,7 @@ This document provides an overview of the top-level tools available in the Micro
 
 *   **[Mail](./mail.md)**: Interact with email messages, folders, and other mail-related functionalities.
 *   **[Calendar](./calendar.md)**: Manage calendar events, schedules, and attendees.
-*   **OneDrive (Coming Soon)**: Interact with files and folders in OneDrive.
+*   **[OneDrive](./onedrive.md)**: List, inspect, search, and create files and folders in OneDrive.
 
 ## How to Discover Sub-Tools
 
